@@ -10,12 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.assertj.core.util.Arrays;
+import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mockito;
-import org.mockito.internal.matchers.And;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -28,8 +26,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.domain.Book;
 import com.project.service.BookService;
-
-import ch.qos.logback.core.util.ContentTypeUtil;
 
 @WebMvcTest(controllers = BookController.class)
 public class BookControllerTest {
@@ -110,6 +106,26 @@ public class BookControllerTest {
 				.contentType(MediaType.APPLICATION_JSON);
 
 		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andReturn();
+
+	}
+	
+	@Test
+	public void testAddInvaildBooks() throws Exception {
+
+		Book book = getBook();
+		book.setName(Strings.EMPTY);;
+
+		String inputJson = mapToJson(book);
+
+		List<Book> books = new ArrayList<>();
+		books.add(book);
+
+		when(bookService.updateBook(book)).thenReturn(book);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/book").contentType(MediaType.APPLICATION_JSON)
+				.content(inputJson);
+
+		mockMvc.perform(requestBuilder).andExpect(status().is5xxServerError());
 
 	}
 
